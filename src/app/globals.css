@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
-@theme {
-  --color-riri-primary: #1e3a5f;
-  --color-riri-accent: #e0a526;
-  --color-riri-light: #f6f4ef;
-}
-
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-riri-navy: #0f2a43;
+  --color-riri-blue: #1d4e89;
+  --color-riri-gold: #c8963e;
+  --color-riri-light: #f7f9fb;
+
+
+  --color-riri-primary: var(--color-riri-navy);
+  --color-riri-accent: var(--color-riri-gold);
+}
