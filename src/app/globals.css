@@ -1,14 +1,38 @@
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Colores principales */
   --color-riri-navy: #0f2a43;
   --color-riri-blue: #1d4e89;
   --color-riri-gold: #c8963e;
+
+  /* Fondos */
   --color-riri-light: #f7f9fb;
+  --color-riri-white: #ffffff;
+  --color-riri-surface: #eef2f6;
 
-
+  /* Textos */
   --color-riri-primary: var(--color-riri-navy);
   --color-riri-accent: var(--color-riri-gold);
+  --color-riri-muted: #64748b;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: #c8963e;
+  color: #0f2a43;
+}
+
+.dark {
+  color-scheme: dark;
 }
