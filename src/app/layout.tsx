@@ -5,8 +5,7 @@ import "./globals.css";
 
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import LayoutContenido from "@/components/LayoutContenido";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -29,16 +28,13 @@ export default function RootLayout({
           }}
         />
       </head>
+
       <body
         className={`${geist.className} flex min-h-screen flex-col bg-riri-light text-slate-800 dark:bg-slate-900 dark:text-slate-100`}
       >
         <ThemeProvider>
           <AuthProvider>
-            <Navbar />
-            <main className="w-full flex-1">
-              {children}
-            </main>
-            <Footer />
+            <LayoutContenido>{children}</LayoutContenido>
           </AuthProvider>
         </ThemeProvider>
       </body>

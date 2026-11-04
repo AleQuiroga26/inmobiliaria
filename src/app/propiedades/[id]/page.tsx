@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -81,14 +80,25 @@ export default function DetallePropiedadPage() {
     cargarPropiedad();
   }, [id]);
 
+  // Formatear precio según la moneda recibida desde Django
   function precioFormateado() {
-    if (!propiedad) return "";
+    if (!propiedad) return "Consultar precio";
 
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: propiedad.moneda || "ARS",
-      maximumFractionDigits: 0,
-    }).format(Number(propiedad.precio));
+    const precio = Number(propiedad.precio);
+
+    if (!Number.isFinite(precio)) return "Consultar precio";
+
+    const moneda = propiedad.moneda || "ARS";
+
+    try {
+      return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: moneda,
+        maximumFractionDigits: 0,
+      }).format(precio);
+    } catch {
+      return `${moneda} ${precio.toLocaleString("es-AR")}`;
+    }
   }
 
   function obtenerNombreBarrio() {
@@ -111,187 +121,250 @@ export default function DetallePropiedadPage() {
     return `Tipo #${propiedad.tipo}`;
   }
 
-  return (
-    <section className="min-h-screen bg-riri-light px-6 py-16 dark:bg-slate-900">
-      <div className="mx-auto max-w-5xl">
+  const caracteristicasPrincipales = [
+    {
+      icono: "⌂",
+      nombre: "Superficie",
+      valor: `${propiedad?.superficie_m2 ?? 0} m²`,
+    },
+    {
+      icono: "▦",
+      nombre: "Ambientes",
+      valor: propiedad?.ambientes ?? 0,
+    },
+    {
+      icono: "🛏",
+      nombre: "Dormitorios",
+      valor: propiedad?.dormitorios ?? 0,
+    },
+    {
+      icono: "▤",
+      nombre: "Baños",
+      valor: propiedad?.banios ?? 0,
+    },
+    {
+      icono: "🚗",
+      nombre: "Cocheras",
+      valor: propiedad?.cocheras ?? 0,
+    },
+    {
+      icono: "⌂",
+      nombre: "Tipo",
+      valor: obtenerNombreTipo(),
+    },
+  ];
 
+  return (
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
+
+        {/* VOLVER AL CATÁLOGO */}
         <Link
           href="/propiedades"
-          className="mb-8 inline-block font-semibold text-riri-gold transition hover:underline"
+          className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-amber-600 dark:text-slate-300"
         >
-          ← Volver a propiedades
+          <span>←</span> Volver a propiedades
         </Link>
 
+        {/* CARGANDO */}
         {cargando && (
-          <p className="py-16 text-center text-slate-600 dark:text-slate-300">
-            Cargando información de la propiedad...
-          </p>
+          <div className="animate-pulse space-y-6">
+            <div className="h-80 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-1/2 rounded bg-slate-200 dark:bg-slate-700" />
+            <div className="h-32 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+          </div>
         )}
 
+        {/* ERROR */}
         {error && (
-          <div className="rounded-xl bg-white p-8 text-center dark:bg-slate-800">
-            <p role="alert" className="text-red-500">
+          <div className="rounded-2xl border border-red-200 bg-white p-10 text-center dark:border-red-900 dark:bg-slate-800">
+            <span className="text-5xl">⌂</span>
+
+            <h2 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">
+              No encontramos la propiedad
+            </h2>
+
+            <p role="alert" className="mt-3 text-red-500">
               {error}
             </p>
 
             <Link
               href="/propiedades"
-              className="mt-5 inline-block rounded-lg bg-riri-navy px-5 py-3 font-semibold text-white"
+              className="mt-6 inline-block rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-600"
             >
               Volver al catálogo
             </Link>
           </div>
         )}
 
+        {/* DETALLE */}
         {!cargando && !error && propiedad && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="space-y-8">
 
-            {/* Imagen */}
-            {propiedad.foto ? (
-              <img
-                src={propiedad.foto}
-                alt={propiedad.titulo}
-                className="h-72 w-full object-cover md:h-96"
-              />
-            ) : (
-              <div className="flex h-72 items-center justify-center bg-gradient-to-br from-riri-navy to-riri-blue md:h-96">
-                <span className="text-8xl text-white">⌂</span>
+            {/* IMAGEN PRINCIPAL */}
+            <section className="relative overflow-hidden rounded-2xl bg-slate-900">
+              {propiedad.foto ? (
+                <img
+                  src={propiedad.foto}
+                  alt={propiedad.titulo}
+                  className="h-[300px] w-full object-cover md:h-[480px]"
+                />
+              ) : (
+                <div className="flex h-[300px] items-center justify-center bg-gradient-to-br from-slate-950 via-slate-800 to-amber-900 md:h-[480px]">
+                  <div className="text-center">
+                    <span className="text-8xl text-white/70">⌂</span>
+                    <p className="mt-4 text-sm font-medium text-white/70">
+                      Imagen de la propiedad
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="absolute left-5 top-5 flex flex-wrap gap-2">
+                <span className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950">
+                  {propiedad.operacion}
+                </span>
+
+                <span className="rounded-full bg-white/95 px-4 py-2 text-xs font-bold capitalize text-slate-800">
+                  {propiedad.estado}
+                </span>
               </div>
-            )}
+            </section>
 
-            <div className="p-6 md:p-10">
+            {/* INFORMACIÓN PRINCIPAL */}
+            <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
 
-              {/* Título y precio */}
-              <div className="flex flex-col justify-between gap-5 md:flex-row">
-                <div>
-                  <span className="font-semibold uppercase tracking-widest text-riri-gold">
-                    {propiedad.operacion}
+              <div className="space-y-8">
+
+                {/* TÍTULO Y UBICACIÓN */}
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-amber-600">
+                    {obtenerNombreTipo()}
                   </span>
 
-                  <h1 className="mt-2 text-3xl font-bold text-riri-navy dark:text-white md:text-4xl">
+                  <h1 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
                     {propiedad.titulo}
                   </h1>
 
-                  <p className="mt-3 text-slate-500 dark:text-slate-400">
-                    📍 {propiedad.direccion}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-2xl font-bold text-riri-gold">
-                    {precioFormateado()}
+                  <p className="mt-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <span>📍</span>
+                    {propiedad.direccion}
                   </p>
 
-                  <span className="mt-2 inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                    {propiedad.estado}
-                  </span>
-                </div>
-              </div>
-
-              {/* Descripción */}
-              <div className="mt-10">
-                <h2 className="text-xl font-bold text-riri-navy dark:text-white">
-                  Descripción
-                </h2>
-
-                <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-                  {propiedad.descripcion || "Sin descripción disponible."}
-                </p>
-              </div>
-
-              {/* Características */}
-              <div className="mt-10">
-                <h2 className="text-xl font-bold text-riri-navy dark:text-white">
-                  Características
-                </h2>
-
-                <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3">
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Superficie
+                  <div className="mt-6 border-t border-slate-100 pt-5 dark:border-slate-700">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Ubicación
                     </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {propiedad.superficie_m2} m²
+
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-white">
+                      {obtenerNombreBarrio()}
                     </p>
                   </div>
+                </section>
 
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Ambientes
-                    </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {propiedad.ambientes}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Dormitorios
-                    </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {propiedad.dormitorios}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Baños
-                    </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {propiedad.banios}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Cocheras
-                    </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {propiedad.cocheras}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-riri-light p-4 dark:bg-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-300">
-                      Tipo
-                    </p>
-                    <p className="mt-1 font-bold text-riri-navy dark:text-white">
-                      {obtenerNombreTipo()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ubicación y características adicionales */}
-              <div className="mt-10">
-                <h2 className="text-xl font-bold text-riri-navy dark:text-white">
-                  Ubicación
-                </h2>
-
-                <p className="mt-3 text-slate-600 dark:text-slate-300">
-                  {obtenerNombreBarrio()}
-                </p>
-              </div>
-
-              {propiedad.caracteristicas?.length > 0 && (
-                <div className="mt-10">
-                  <h2 className="text-xl font-bold text-riri-navy dark:text-white">
-                    Características adicionales
+                {/* DESCRIPCIÓN */}
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Descripción de la propiedad
                   </h2>
 
-                  <ul className="mt-3 list-inside list-disc space-y-2 text-slate-600 dark:text-slate-300">
-                    {propiedad.caracteristicas.map((caracteristica) => (
-                      <li key={caracteristica.id}>
-                        {caracteristica.nombre}
-                      </li>
+                  <p className="mt-4 whitespace-pre-line text-sm leading-8 text-slate-600 dark:text-slate-300">
+                    {propiedad.descripcion ||
+                      "No hay una descripción disponible para esta propiedad."}
+                  </p>
+                </section>
+
+                {/* CARACTERÍSTICAS */}
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Características principales
+                  </h2>
+
+                  <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {caracteristicasPrincipales.map((caracteristica) => (
+                      <div
+                        key={caracteristica.nombre}
+                        className="rounded-xl bg-slate-50 p-5 dark:bg-slate-700/60"
+                      >
+                        <span className="text-2xl">
+                          {caracteristica.icono}
+                        </span>
+
+                        <p className="mt-3 text-xs text-slate-500 dark:text-slate-300">
+                          {caracteristica.nombre}
+                        </p>
+
+                        <p className="mt-1 font-bold text-slate-900 dark:text-white">
+                          {caracteristica.valor}
+                        </p>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-              )}
+                  </div>
+                </section>
+
+                {/* CARACTERÍSTICAS ADICIONALES */}
+                {propiedad.caracteristicas?.length > 0 && (
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                      Características adicionales
+                    </h2>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      {propiedad.caracteristicas.map((caracteristica) => (
+                        <span
+                          key={caracteristica.id}
+                          className="rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                        >
+                          ✓ {caracteristica.nombre}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              {/* PANEL LATERAL */}
+              <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:sticky lg:top-28">
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  Precio de la propiedad
+                </p>
+
+                <p className="mt-2 text-3xl font-bold text-amber-600">
+                  {precioFormateado()}
+                </p>
+
+                <div className="my-6 border-t border-slate-100 dark:border-slate-700" />
+
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  ¿Te interesa esta propiedad?
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Consultá por más información sobre esta propiedad.
+                </p>
+
+                <Link
+                  href="/nosotros"
+                  className="mt-6 block rounded-xl bg-slate-950 px-5 py-4 text-center text-sm font-bold text-white transition hover:bg-amber-600"
+                >
+                  Contactar inmobiliaria
+                </Link>
+
+                <Link
+                  href="/propiedades"
+                  className="mt-3 block rounded-xl border border-slate-300 px-5 py-4 text-center text-sm font-semibold text-slate-700 transition hover:border-amber-500 hover:text-amber-600 dark:border-slate-600 dark:text-slate-200"
+                >
+                  Ver más propiedades
+                </Link>
+
+                <p className="mt-6 text-center text-xs text-slate-400">
+                  Código de propiedad: #{propiedad.id}
+                </p>
+              </aside>
             </div>
           </div>
         )}
       </div>
-    </section>
+    </main>
   );
 }
