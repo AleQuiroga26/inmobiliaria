@@ -65,7 +65,7 @@ export default function Footer() {
       {/* COPYRIGHT */}
       <div className="border-t border-slate-800">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-5 text-center text-xs text-slate-500 sm:flex-row lg:px-8">
-          <p>© {new Date().getFullYear()} Inmobiliaria Riri. Todos los derechos reservados.</p>
+          <p>© 2026 Inmobiliaria Riri. Todos los derechos reservados.</p>
           <p>Desarrollado con dedicación en Córdoba, Argentina.</p>
         </div>
       </div>
