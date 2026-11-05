@@ -69,7 +69,28 @@ export default function DetallePropiedadPage() {
         }
 
         const datos = await respuesta.json();
-        setPropiedad(datos);
+        const api = process.env.NEXT_PUBLIC_API_URL;
+
+        const [respuestaBarrio, respuestaTipo] = await Promise.all([
+          typeof datos.barrio === "number"
+            ? fetch(`${api}/barrios/${datos.barrio}/`)
+            : null,
+          typeof datos.tipo === "number"
+            ? fetch(`${api}/tipos-propiedad/${datos.tipo}/`)
+            : null,
+        ]);
+
+        const barrio =
+          respuestaBarrio?.ok ? await respuestaBarrio.json() : datos.barrio;
+
+        const tipo =
+          respuestaTipo?.ok ? await respuestaTipo.json() : datos.tipo;
+
+        setPropiedad({
+          ...datos,
+          barrio,
+          tipo,
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Ocurrió un error inesperado."
@@ -113,7 +134,7 @@ export default function DetallePropiedadPage() {
     if (!propiedad) return "";
 
     if (typeof propiedad.barrio === "object") {
-      return `${propiedad.barrio.nombre}, ${propiedad.barrio.ciudad}`;
+      return `Barrio ${propiedad.barrio.nombre}`;
     }
 
     return `Barrio #${propiedad.barrio}`;
