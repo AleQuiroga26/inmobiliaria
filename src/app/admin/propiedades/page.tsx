@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import BorrarPropiedad from "@/components/BorrarPropiedad";
 
 type Propiedad = {
   id: number;
@@ -15,12 +16,11 @@ type Propiedad = {
 
 export default function PropiedadesPage() {
   const router = useRouter();
-  const { token, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [eliminandoId, setEliminandoId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -55,50 +55,6 @@ export default function PropiedadesPage() {
 
     cargarPropiedades();
   }, [isLoading, isAuthenticated]);
-
-  async function eliminarPropiedad(id: number) {
-    const confirmado = window.confirm(
-      "¿Estás seguro de que querés eliminar esta propiedad?"
-    );
-
-    if (!confirmado) return;
-
-    if (!token) {
-      setError("Tu sesión no está disponible. Iniciá sesión nuevamente.");
-      return;
-    }
-
-    setError("");
-    setEliminandoId(id);
-
-    try {
-      const respuesta = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/propiedades/${id}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!respuesta.ok) {
-        throw new Error(
-          `No se pudo eliminar la propiedad (HTTP ${respuesta.status})`
-        );
-      }
-
-      setPropiedades((actuales) =>
-        actuales.filter((propiedad) => propiedad.id !== id)
-      );
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al eliminar"
-      );
-    } finally {
-      setEliminandoId(null);
-    }
-  }
 
   if (isLoading || !isAuthenticated) {
     return <p className="p-8">Verificando sesión...</p>;
@@ -159,16 +115,15 @@ export default function PropiedadesPage() {
                     Editar
                   </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => eliminarPropiedad(propiedad.id)}
-                    disabled={eliminandoId !== null}
-                    className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {eliminandoId === propiedad.id
-                      ? "Eliminando..."
-                      : "Eliminar"}
-                  </button>
+                  <BorrarPropiedad
+                    id={propiedad.id}
+                    titulo={propiedad.titulo}
+                    onBorrada={(id) =>
+                      setPropiedades((actuales) =>
+                        actuales.filter((p) => p.id !== id)
+                      )
+                    }
+                  />
                 </div>
               </div>
             ))}
