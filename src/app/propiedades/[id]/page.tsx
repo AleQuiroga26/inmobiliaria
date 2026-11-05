@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { obtenerImagenPropiedad } from "@/lib/imagenesPropiedades";
 
 type Barrio = {
   id: number;
@@ -203,22 +205,15 @@ export default function DetallePropiedadPage() {
 
             {/* IMAGEN PRINCIPAL */}
             <section className="relative overflow-hidden rounded-2xl bg-slate-900">
-              {propiedad.foto ? (
-                <img
-                  src={propiedad.foto}
-                  alt={propiedad.titulo}
-                  className="h-[300px] w-full object-cover md:h-[480px]"
-                />
-              ) : (
-                <div className="flex h-[300px] items-center justify-center bg-gradient-to-br from-slate-950 via-slate-800 to-amber-900 md:h-[480px]">
-                  <div className="text-center">
-                    <span className="text-8xl text-white/70">⌂</span>
-                    <p className="mt-4 text-sm font-medium text-white/70">
-                      Imagen de la propiedad
-                    </p>
-                  </div>
-                </div>
-              )}
+              <img
+                src={
+                  propiedad.foto || obtenerImagenPropiedad(propiedad.id)
+                }
+                alt={propiedad.titulo}
+                className="h-[300px] w-full object-cover md:h-[480px]"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
               <div className="absolute left-5 top-5 flex flex-wrap gap-2">
                 <span className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950">
@@ -310,14 +305,16 @@ export default function DetallePropiedadPage() {
                     </h2>
 
                     <div className="mt-5 flex flex-wrap gap-3">
-                      {propiedad.caracteristicas.map((caracteristica) => (
-                        <span
-                          key={caracteristica.id}
-                          className="rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                        >
-                          ✓ {caracteristica.nombre}
-                        </span>
-                      ))}
+                      {propiedad.caracteristicas.map(
+                        (caracteristica, index) => (
+                          <span
+                            key={`${caracteristica.id}-${index}`}
+                            className="rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                          >
+                            ✓ {caracteristica.nombre}
+                          </span>
+                        )
+                      )}
                     </div>
                   </section>
                 )}
