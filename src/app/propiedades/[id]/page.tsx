@@ -84,13 +84,33 @@ export default function DetallePropiedadPage() {
           respuestaBarrio?.ok ? await respuestaBarrio.json() : datos.barrio;
 
         const tipo =
-          respuestaTipo?.ok ? await respuestaTipo.json() : datos.tipo;
+  respuestaTipo?.ok ? await respuestaTipo.json() : datos.tipo;
 
-        setPropiedad({
-          ...datos,
-          barrio,
-          tipo,
-        });
+const caracteristicas = await Promise.all(
+  (datos.caracteristicas ?? []).map(
+    async (caracteristica: number | Caracteristica) => {
+      if (typeof caracteristica === "object") {
+        return caracteristica;
+      }
+
+      const id = caracteristica;
+      const respuestaCaracteristica = await fetch(
+        `${api}/caracteristicas/${id}/`
+      );
+
+      return respuestaCaracteristica.ok
+        ? respuestaCaracteristica.json()
+        : { id, nombre: `Característica #${id}` };
+    }
+  )
+);
+
+setPropiedad({
+  ...datos,
+  barrio,
+  tipo,
+  caracteristicas,
+});
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Ocurrió un error inesperado."
