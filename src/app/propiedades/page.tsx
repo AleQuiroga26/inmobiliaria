@@ -8,6 +8,7 @@ import {
   obtenerNombreBarrio,
   type Propiedad,
 } from "@/lib/propiedades";
+import { obtenerImagenPropiedad } from "@/lib/imagenesPropiedades";
 
 export default function PropiedadesPage() {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
@@ -307,25 +308,19 @@ export default function PropiedadesPage() {
         {/* TARJETAS DE PROPIEDADES */}
         {!cargando && !error && propiedadesFiltradas.length > 0 && (
           <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-            {propiedadesFiltradas.map((propiedad, index) => (
+            {propiedadesFiltradas.map((propiedad) => (
               <Link
                 key={propiedad.id}
                 href={`/propiedades/${propiedad.id}`}
                 className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800"
               >
-                {/* IMAGEN PROVISORIA */}
-                <div
-                  className={`relative flex h-56 items-center justify-center overflow-hidden ${
-                    index % 3 === 0
-                      ? "bg-gradient-to-br from-slate-800 to-slate-600"
-                      : index % 3 === 1
-                      ? "bg-gradient-to-br from-amber-900 to-amber-700"
-                      : "bg-gradient-to-br from-blue-950 to-blue-700"
-                  }`}
-                >
-                  <span className="text-7xl text-white/70 transition duration-300 group-hover:scale-110">
-                    ⌂
-                  </span>
+                {/* IMAGEN DE LA PROPIEDAD */}
+                <div className="relative h-56 overflow-hidden bg-slate-200 dark:bg-slate-700">
+                  <img
+                    src={obtenerImagenPropiedad(propiedad.id)}
+                    alt={propiedad.titulo ?? "Imagen de propiedad"}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
 
                   <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800">
                     Propiedad disponible
