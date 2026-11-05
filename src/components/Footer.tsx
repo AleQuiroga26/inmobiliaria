@@ -47,6 +47,7 @@ export default function Footer() {
         </div>
 
         {/* UBICACIÓN */}
+        {/* h */}
         <div>
           <h3 className="mb-5 text-sm font-bold uppercase tracking-widest text-amber-400">
             Ubicación
