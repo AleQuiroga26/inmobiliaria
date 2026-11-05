@@ -135,13 +135,7 @@ export default function AdminPage() {
               Bienvenido al espacio de gestión de la inmobiliaria.
             </p>
           </div>
-
-          <button
-            onClick={cerrarSesion}
-            className="rounded-xl border border-red-200 bg-white px-5 py-3 font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40"
-          >
-            Cerrar sesión →
-          </button>
+          
         </header>
 
         {/* ESTADÍSTICAS */}

@@ -1,10 +1,10 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -15,6 +15,8 @@ const links = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
@@ -69,15 +71,41 @@ export default function Navbar() {
             })}
           </ul>
 
+          {/* ACCESO AL PANEL ADMINISTRATIVO */}
+          {!isLoading && isAuthenticated && (
+            <Link
+              href="/admin"
+              className={`text-sm font-semibold transition-colors ${
+                pathname.startsWith("/admin")
+                  ? "text-amber-600"
+                  : "text-slate-700 hover:text-amber-600"
+              }`}
+            >
+              Panel administrativo
+            </Link>
+          )}
+
+          {/* TEMA Y AUTENTICACIÓN */}
           <div className="flex items-center gap-4 border-l border-slate-200 pl-6">
             <ThemeToggle />
 
-            <Link
-              href="/login"
-              className="rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-amber-600 hover:shadow-md"
-            >
-              Ingresar
-            </Link>
+            {!isLoading && (
+              isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-md"
+                >
+                  Cerrar sesión
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-amber-600 hover:shadow-md"
+                >
+                  Ingresar
+                </Link>
+              )
+            )}
           </div>
         </div>
 
@@ -118,6 +146,24 @@ export default function Navbar() {
               );
             })}
 
+            {/* ACCESO AL PANEL ADMINISTRATIVO */}
+            {!isLoading && isAuthenticated && (
+              <li>
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className={`block rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
+                    pathname.startsWith("/admin")
+                      ? "bg-amber-50 text-amber-700"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Panel administrativo
+                </Link>
+              </li>
+            )}
+
+            {/* APARIENCIA */}
             <li className="flex items-center justify-between px-4 py-3">
               <span className="text-sm font-medium text-slate-700">
                 Apariencia
@@ -125,15 +171,30 @@ export default function Navbar() {
               <ThemeToggle />
             </li>
 
-            <li className="pt-2">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="block rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-amber-600"
-              >
-                Ingresar
-              </Link>
-            </li>
+            {/* INGRESAR / CERRAR SESIÓN */}
+            {!isLoading && (
+              <li className="pt-2">
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setOpen(false);
+                    }}
+                    className="block w-full rounded-lg bg-red-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-700"
+                  >
+                    Cerrar sesión
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="block rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-amber-600"
+                  >
+                    Ingresar
+                  </Link>
+                )}
+              </li>
+            )}
           </ul>
         </div>
       )}
