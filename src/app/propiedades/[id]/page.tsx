@@ -28,7 +28,7 @@ type Propiedad = {
   descripcion: string;
   direccion: string;
   operacion: string;
-  precio: number | string;
+  precio: number | string | null;
   moneda: string;
   superficie_m2: number;
   ambientes: number;
@@ -86,9 +86,15 @@ export default function DetallePropiedadPage() {
   function precioFormateado() {
     if (!propiedad) return "Consultar precio";
 
+    if (propiedad.precio === null || propiedad.precio === "") {
+      return "Consultar precio";
+    }
+
     const precio = Number(propiedad.precio);
 
-    if (!Number.isFinite(precio)) return "Consultar precio";
+    if (!Number.isFinite(precio) || precio <= 0) {
+      return "Consultar precio";
+    }
 
     const moneda = propiedad.moneda || "ARS";
 
