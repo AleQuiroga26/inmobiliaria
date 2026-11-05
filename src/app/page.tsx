@@ -75,7 +75,7 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-white text-slate-800">
+    <main className="bg-white text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-100">
 
       {/* PORTADA */}
       <section className="relative flex min-h-[650px] items-center bg-slate-900 px-6 py-24">
@@ -122,15 +122,15 @@ export default function Home() {
           </div>
 
           {/* BUSCADOR */}
-          <div className="mt-14 grid gap-4 rounded-xl bg-white p-5 shadow-2xl md:grid-cols-[1fr_1fr_auto] md:items-end md:p-7">
+          <div className="mt-14 grid gap-4 rounded-xl bg-white p-5 shadow-2xl transition-colors dark:bg-slate-900 dark:shadow-black/30 md:grid-cols-[1fr_1fr_auto] md:items-end md:p-7">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-600">
+              <label className="mb-2 block text-sm font-semibold text-slate-600 dark:text-slate-300">
                 Operación
               </label>
               <select
                 value={operacion}
                 onChange={(e) => setOperacion(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-400"
+                className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
                 <option value="venta">Comprar</option>
                 <option value="alquiler">Alquilar</option>
@@ -138,13 +138,13 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-600">
+              <label className="mb-2 block text-sm font-semibold text-slate-600 dark:text-slate-300">
                 Tipo de propiedad
               </label>
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-400"
+                className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
                 <option value="todos">Todos los tipos</option>
                 <option value="casa">Casa</option>
@@ -164,34 +164,34 @@ export default function Home() {
       </section>
 
       {/* BENEFICIOS */}
-      <section className="border-b border-slate-200 bg-[#faf8f4] px-6 py-8">
+      <section className="border-b border-slate-200 bg-[#faf8f4] px-6 py-8 transition-colors dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto grid max-w-6xl gap-8 text-center md:grid-cols-3">
           <div>
             <span className="text-3xl">🤝</span>
-            <h3 className="mt-2 font-semibold text-slate-900">
+            <h3 className="mt-2 font-semibold text-slate-900 dark:text-white">
               Atención personalizada
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Te acompañamos en cada paso.
             </p>
           </div>
 
           <div>
             <span className="text-3xl">🛡️</span>
-            <h3 className="mt-2 font-semibold text-slate-900">
+            <h3 className="mt-2 font-semibold text-slate-900 dark:text-white">
               Transparencia
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Claridad durante todo el proceso.
             </p>
           </div>
 
           <div>
             <span className="text-3xl">⌂</span>
-            <h3 className="mt-2 font-semibold text-slate-900">
+            <h3 className="mt-2 font-semibold text-slate-900 dark:text-white">
               Tu próximo hogar
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Encontramos el lugar ideal para vos.
             </p>
           </div>
@@ -203,29 +203,29 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 flex flex-wrap items-end justify-between gap-5">
             <div>
-              <span className="font-semibold uppercase tracking-[0.2em] text-amber-600">
+              <span className="font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
                 Nuestro catálogo
               </span>
 
-              <h2 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">
+              <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
                 Propiedades destacadas
               </h2>
 
-              <p className="mt-3 text-slate-500">
+              <p className="mt-3 text-slate-500 dark:text-slate-400">
                 Descubrí algunas de nuestras oportunidades.
               </p>
             </div>
 
             <Link
               href="/propiedades"
-              className="font-semibold text-slate-900 transition hover:text-amber-600"
+              className="font-semibold text-slate-900 dark:text-white transition hover:text-amber-600 dark:hover:text-amber-400"
             >
               Ver todas las propiedades →
             </Link>
           </div>
 
           {cargando && (
-            <p className="py-10 text-center text-slate-500">
+            <p className="py-10 text-center text-slate-500 dark:text-slate-400">
               Cargando propiedades...
             </p>
           )}
@@ -237,7 +237,7 @@ export default function Home() {
           )}
 
           {!cargando && !error && propiedades.length === 0 && (
-            <p className="py-10 text-center text-slate-500">
+            <p className="py-10 text-center text-slate-500 dark:text-slate-400">
               Todavía no hay propiedades disponibles.
             </p>
           )}
@@ -246,7 +246,7 @@ export default function Home() {
             {propiedades.map((propiedad, indice) => (
               <article
                 key={propiedad.id}
-                className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl"
+                className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30"
               >
                 <div
                   className="relative h-64 bg-cover bg-center"
@@ -260,26 +260,26 @@ export default function Home() {
                 </div>
 
                 <div className="p-6">
-                  <p className="text-xl font-bold text-amber-600">
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
                     {formatearPrecio(propiedad.precio)}
                   </p>
 
-                  <h3 className="mt-3 text-xl font-bold text-slate-900">
+                  <h3 className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
                     {propiedad.titulo ?? `Propiedad #${propiedad.id}`}
                   </h3>
 
-                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                     {propiedad.descripcion}
                   </p>
 
                   {propiedad.direccion && (
-                    <p className="mt-4 text-sm text-slate-500">
+                    <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
                       📍 {propiedad.direccion}
                     </p>
                   )}
 
                   {propiedad.superficie_m2 && (
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                       ◫ {propiedad.superficie_m2} m²
                     </p>
                   )}
@@ -298,7 +298,7 @@ export default function Home() {
       </section>
 
       {/* SOBRE NOSOTROS */}
-      <section className="bg-[#faf8f4] px-6 py-20">
+      <section className="bg-[#faf8f4] px-6 py-20 transition-colors dark:bg-slate-900">
         <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
           <div
             className="min-h-[350px] rounded-xl bg-cover bg-center shadow-lg"
@@ -309,15 +309,15 @@ export default function Home() {
           />
 
           <div>
-            <span className="font-semibold uppercase tracking-[0.2em] text-amber-600">
+            <span className="font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
               Sobre nosotros
             </span>
 
-            <h2 className="mt-4 text-3xl font-bold leading-tight text-slate-900 md:text-4xl">
+            <h2 className="mt-4 text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl">
               Tu confianza, nuestro compromiso.
             </h2>
 
-            <p className="mt-5 leading-relaxed text-slate-600">
+            <p className="mt-5 leading-relaxed text-slate-600 dark:text-slate-300">
               En Inmobiliaria Riri trabajamos para ayudarte a encontrar
               la propiedad ideal, con un servicio cercano, profesional
               y transparente.
