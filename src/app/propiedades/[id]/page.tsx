@@ -211,6 +211,13 @@ export default function DetallePropiedadPage() {
                 }
                 alt={propiedad.titulo}
                 className="h-[300px] w-full object-cover md:h-[480px]"
+                onError={(evento) => {
+                const imagenPorDefecto = obtenerImagenPropiedad(propiedad.id);
+
+                if (evento.currentTarget.src !== imagenPorDefecto) {
+                  evento.currentTarget.src = imagenPorDefecto;
+                }
+              }}
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
