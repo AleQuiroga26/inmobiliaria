@@ -323,8 +323,9 @@ La planificación activa se encuentra en el tablero [Inmobiliaria Riri — EFI d
 - Eliminación en dos pasos y navegación administrativa.
 - Tests del componente de precio y ampliación de la suite a cuatro casos.
 
-### SantiiCapee
+### Santiago Capellino - SantiiCapee
 
+- API REST de Django y endpoints de gestión.
 - Documentación OpenAPI del backend.
 - CORS y variables de entorno.
 - Docker, Docker Compose y capturas de la API.
