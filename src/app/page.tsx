@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import PrecioPropiedad from "@/components/PrecioPropiedad";
 
 type Propiedad = {
   id: number;
   titulo?: string;
   descripcion?: string;
   precio?: number | string;
+  moneda?: string;
   direccion?: string;
   superficie_m2?: number;
 };
@@ -52,18 +54,6 @@ export default function Home() {
 
     cargarPropiedades();
   }, []);
-
-  function formatearPrecio(precio?: number | string) {
-    if (precio === undefined || precio === null) {
-      return "Consultar precio";
-    }
-
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      maximumFractionDigits: 0,
-    }).format(Number(precio));
-  }
 
   function buscarPropiedades() {
     const parametros = new URLSearchParams();
@@ -261,7 +251,10 @@ export default function Home() {
 
                 <div className="p-6">
                   <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
-                    {formatearPrecio(propiedad.precio)}
+                    <PrecioPropiedad
+                      precio={propiedad.precio}
+                      moneda={propiedad.moneda}
+                    />
                   </p>
 
                   <h3 className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
