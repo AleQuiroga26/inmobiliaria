@@ -12,7 +12,24 @@ const schema = z.object({
   titulo: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   descripcion: z.string().min(5, "Ingresá una descripción"),
   direccion: z.string().min(3, "Ingresá una dirección"),
-  precio: z.coerce.number<number>().positive("El precio debe ser mayor a 0"),
+  precio: z
+    .string()
+    .refine((valor) => valor === "" || Number(valor) > 0, "El precio debe ser mayor a 0"),
+  operacion: z.enum(["venta", "alquiler"], { message: "Seleccioná la operación" }),
+  moneda: z.enum(["ARS", "USD"], { message: "Seleccioná la moneda" }),
+  estado: z.enum(["disponible", "reservada", "alquilada", "vendida"], {
+    message: "Seleccioná el estado",
+  }),
+  superficie_m2: z.coerce.number<number>().positive("Ingresá la superficie"),
+  ambientes: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  dormitorios: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  banios: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  cocheras: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  barrio: z.coerce.number<number>().int().positive("Seleccioná un barrio"),
+  tipo: z.coerce.number<number>().int().positive("Seleccioná un tipo"),
+  propietario: z.coerce.number<number>().int().positive("Seleccioná un propietario"),
+  agente: z.coerce.number<number>().int().positive("Seleccioná un agente"),
+  caracteristicas: z.union([z.array(z.string()), z.string(), z.boolean()]).optional(),
 });
 
 type FormularioEdicion = z.infer<typeof schema>;
@@ -22,8 +39,58 @@ type Propiedad = {
   titulo: string;
   descripcion: string;
   direccion: string;
-  precio: number | string;
+  precio: number | string | null;
+  operacion: FormularioEdicion["operacion"];
+  moneda: FormularioEdicion["moneda"];
+  estado: FormularioEdicion["estado"];
+  superficie_m2: number;
+  ambientes: number;
+  dormitorios: number;
+  banios: number;
+  cocheras: number;
+  barrio: number;
+  tipo: number;
+  propietario: number;
+  agente: number | null;
+  caracteristicas: number[];
 };
+
+type Opcion = {
+  id: number;
+  nombre?: string;
+  apellido?: string;
+};
+
+const cantidades = [
+  { nombre: "superficie_m2", etiqueta: "Superficie (m²)" },
+  { nombre: "ambientes", etiqueta: "Ambientes" },
+  { nombre: "dormitorios", etiqueta: "Dormitorios" },
+  { nombre: "banios", etiqueta: "Baños" },
+  { nombre: "cocheras", etiqueta: "Cocheras" },
+] as const;
+
+const fijos = [
+  {
+    nombre: "operacion",
+    etiqueta: "Operación",
+    opciones: [["venta", "Venta"], ["alquiler", "Alquiler"]],
+  },
+  {
+    nombre: "moneda",
+    etiqueta: "Moneda",
+    opciones: [["USD", "Dólares (USD)"], ["ARS", "Pesos (ARS)"]],
+  },
+  {
+    nombre: "estado",
+    etiqueta: "Estado",
+    opciones: [
+      ["disponible", "Disponible"],
+      ["reservada", "Reservada"],
+      ["alquilada", "Alquilada"],
+      ["vendida", "Vendida"],
+    ],
+  },
+] as const;
 
 function FormularioEditarPropiedad() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +98,11 @@ function FormularioEditarPropiedad() {
   const { token, isAuthenticated, isLoading } = useAuth();
 
   const [propiedad, setPropiedad] = useState<Propiedad | null>(null);
+  const [barrios, setBarrios] = useState<Opcion[]>([]);
+  const [tipos, setTipos] = useState<Opcion[]>([]);
+  const [propietarios, setPropietarios] = useState<Opcion[]>([]);
+  const [agentes, setAgentes] = useState<Opcion[]>([]);
+  const [caracteristicas, setCaracteristicas] = useState<Opcion[]>([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(true);
 
@@ -54,14 +126,23 @@ function FormularioEditarPropiedad() {
 
     async function cargarPropiedad() {
       try {
-        const respuesta = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/propiedades/${id}/`,
-          {
-            headers: token
-              ? { Authorization: `Bearer ${token}` }
-              : {},
+        const api = process.env.NEXT_PUBLIC_API_URL;
+        const headers: Record<string, string> = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
+
+        async function obtener(ruta: string) {
+          const respuesta = await fetch(`${api}/${ruta}/`, { headers });
+
+          if (!respuesta.ok) {
+            throw new Error(`Error al cargar ${ruta}`);
           }
-        );
+
+          const datos = await respuesta.json();
+          return datos.results ?? datos;
+        }
+
+        const respuesta = await fetch(`${api}/propiedades/${id}/`, { headers });
 
         if (!respuesta.ok) {
           throw new Error("No se pudo cargar la propiedad");
@@ -69,13 +150,39 @@ function FormularioEditarPropiedad() {
 
         const datos: Propiedad = await respuesta.json();
 
+        const [b, t, p, a, c] = await Promise.all([
+          obtener("barrios"),
+          obtener("tipos-propiedad"),
+          obtener("propietarios"),
+          obtener("agentes"),
+          obtener("caracteristicas"),
+        ]);
+
+        setBarrios(b);
+        setTipos(t);
+        setPropietarios(p);
+        setAgentes(a);
+        setCaracteristicas(c);
         setPropiedad(datos);
 
         reset({
           titulo: datos.titulo,
           descripcion: datos.descripcion,
           direccion: datos.direccion,
-          precio: Number(datos.precio),
+          precio: datos.precio === null ? "" : String(Number(datos.precio)),
+          operacion: datos.operacion,
+          moneda: datos.moneda,
+          estado: datos.estado,
+          superficie_m2: datos.superficie_m2,
+          ambientes: datos.ambientes,
+          dormitorios: datos.dormitorios,
+          banios: datos.banios,
+          cocheras: datos.cocheras,
+          barrio: datos.barrio,
+          tipo: datos.tipo,
+          propietario: datos.propietario,
+          agente: datos.agente ?? undefined,
+          caracteristicas: datos.caracteristicas.map(String),
         });
       } catch (err) {
         setError(
@@ -97,6 +204,12 @@ function FormularioEditarPropiedad() {
       return;
     }
 
+    const elegidas = Array.isArray(datos.caracteristicas)
+      ? datos.caracteristicas
+      : typeof datos.caracteristicas === "string"
+        ? [datos.caracteristicas]
+        : [];
+
     try {
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/propiedades/${id}/`,
@@ -106,7 +219,11 @@ function FormularioEditarPropiedad() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(datos),
+          body: JSON.stringify({
+            ...datos,
+            precio: datos.precio === "" ? null : Number(datos.precio),
+            caracteristicas: elegidas.map(Number),
+          }),
         }
       );
 
@@ -199,7 +316,7 @@ function FormularioEditarPropiedad() {
 
         <div>
           <label htmlFor="precio" className="mb-2 block">
-            Precio
+            Precio (vacío = Consultar precio)
           </label>
           <input
             id="precio"
@@ -215,6 +332,106 @@ function FormularioEditarPropiedad() {
             </p>
           )}
         </div>
+
+        {fijos.map((campo) => (
+          <div key={campo.nombre}>
+            <label htmlFor={campo.nombre} className="mb-2 block">
+              {campo.etiqueta}
+            </label>
+            <select
+              id={campo.nombre}
+              {...register(campo.nombre)}
+              className="w-full rounded bg-zinc-800 p-3"
+            >
+              {campo.opciones.map(([valor, texto]) => (
+                <option key={valor} value={valor}>
+                  {texto}
+                </option>
+              ))}
+            </select>
+            {errors[campo.nombre] && (
+              <p className="text-sm text-red-400">
+                {errors[campo.nombre]?.message}
+              </p>
+            )}
+          </div>
+        ))}
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {cantidades.map((campo) => (
+            <div key={campo.nombre}>
+              <label htmlFor={campo.nombre} className="mb-2 block">
+                {campo.etiqueta}
+              </label>
+              <input
+                id={campo.nombre}
+                type="number"
+                min="0"
+                step="1"
+                {...register(campo.nombre)}
+                className="w-full rounded bg-zinc-800 p-3"
+              />
+              {errors[campo.nombre] && (
+                <p className="text-sm text-red-400">
+                  {errors[campo.nombre]?.message}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {[
+          { nombre: "barrio" as const, etiqueta: "Barrio", opciones: barrios },
+          { nombre: "tipo" as const, etiqueta: "Tipo de propiedad", opciones: tipos },
+          { nombre: "propietario" as const, etiqueta: "Propietario", opciones: propietarios },
+          { nombre: "agente" as const, etiqueta: "Agente", opciones: agentes },
+        ].map((campo) => (
+          <div key={campo.nombre}>
+            <label htmlFor={campo.nombre} className="mb-2 block">
+              {campo.etiqueta}
+            </label>
+            <select
+              id={campo.nombre}
+              {...register(campo.nombre)}
+              className="w-full rounded bg-zinc-800 p-3"
+            >
+              <option value="">Seleccionar...</option>
+              {campo.opciones.map((opcion) => (
+                <option key={opcion.id} value={opcion.id}>
+                  {[opcion.nombre, opcion.apellido]
+                    .filter(Boolean)
+                    .join(" ") || `Registro #${opcion.id}`}
+                </option>
+              ))}
+            </select>
+            {errors[campo.nombre] && (
+              <p className="text-sm text-red-400">
+                {errors[campo.nombre]?.message}
+              </p>
+            )}
+          </div>
+        ))}
+
+        {caracteristicas.length > 0 && (
+          <fieldset>
+            <legend className="mb-2">Características</legend>
+            <div className="flex flex-wrap gap-4">
+              {caracteristicas.map((caracteristica) => (
+                <label
+                  key={caracteristica.id}
+                  className="flex items-center gap-2 rounded bg-zinc-800 px-3 py-2"
+                >
+                  <input
+                    type="checkbox"
+                    value={caracteristica.id}
+                    {...register("caracteristicas")}
+                  />
+                  {caracteristica.nombre}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-red-400">
