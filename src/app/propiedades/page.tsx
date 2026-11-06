@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   filtrarPropiedades,
   obtenerNombreBarrio,
@@ -9,7 +10,12 @@ import {
 } from "@/lib/propiedades";
 import PropiedadCard from "@/components/PropiedadCard";
 
-export default function PropiedadesPage() {
+function CatalogoPropiedades() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const operacion = searchParams.get("operacion") ?? "";
+  const tipo = searchParams.get("tipo") ?? "";
+
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -18,12 +24,19 @@ export default function PropiedadesPage() {
   const [barrioSeleccionado, setBarrioSeleccionado] = useState("Todos");
   const [ordenPrecio, setOrdenPrecio] = useState("relevancia");
 
-  // Cargar propiedades desde Django
+  // Cargar propiedades desde Django, con los filtros que vienen del inicio
   useEffect(() => {
     async function cargarPropiedades() {
+      setCargando(true);
+      setError("");
+
+      const parametros = new URLSearchParams();
+      if (operacion) parametros.set("operacion", operacion);
+      if (tipo) parametros.set("tipo", tipo);
+
       try {
         const respuesta = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/propiedades/`
+          `${process.env.NEXT_PUBLIC_API_URL}/propiedades/?${parametros.toString()}`
         );
 
         if (!respuesta.ok) {
@@ -42,7 +55,10 @@ export default function PropiedadesPage() {
     }
 
     cargarPropiedades();
-  }, []);
+  }, [operacion, tipo]);
+
+  const nombreTipo = (propiedades[0] as { tipo?: { nombre?: string } } | undefined)
+    ?.tipo?.nombre;
 
   // Obtener barrios disponibles
   const barrios = useMemo(() => {
@@ -83,6 +99,10 @@ export default function PropiedadesPage() {
     setBusqueda("");
     setBarrioSeleccionado("Todos");
     setOrdenPrecio("relevancia");
+
+    if (operacion || tipo) {
+      router.push("/propiedades");
+    }
   }
 
   return (
@@ -139,9 +159,21 @@ export default function PropiedadesPage() {
             </p>
           </div>
 
-          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {propiedadesFiltradas.length} propiedades encontradas
-          </p>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            {(operacion || tipo) && (
+              <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                {[
+                  operacion === "alquiler" ? "Alquiler" : operacion ? "Venta" : "",
+                  tipo ? nombreTipo ?? "Tipo seleccionado" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            )}
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {propiedadesFiltradas.length} propiedades encontradas
+            </p>
+          </div>
         </div>
 
         {/* PANEL DE FILTROS */}
@@ -301,5 +333,13 @@ export default function PropiedadesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function PropiedadesPage() {
+  return (
+    <Suspense fallback={<p className="p-8 text-slate-500">Cargando propiedades...</p>}>
+      <CatalogoPropiedades />
+    </Suspense>
   );
 }

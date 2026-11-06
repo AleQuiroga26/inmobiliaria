@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PrecioPropiedad from "@/components/PrecioPropiedad";
+
+type TipoPropiedad = {
+  id: number;
+  nombre: string;
+};
 
 type Propiedad = {
   id: number;
@@ -21,12 +27,33 @@ const imagenes = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   const [operacion, setOperacion] = useState("venta");
   const [tipo, setTipo] = useState("todos");
+  const [tipos, setTipos] = useState<TipoPropiedad[]>([]);
+
+  useEffect(() => {
+    async function cargarTipos() {
+      try {
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/tipos-propiedad/`
+        );
+
+        if (!respuesta.ok) return;
+
+        const datos = await respuesta.json();
+        setTipos(datos.results ?? datos);
+      } catch {
+        setTipos([]);
+      }
+    }
+
+    cargarTipos();
+  }, []);
 
   useEffect(() => {
     async function cargarPropiedades() {
@@ -59,9 +86,12 @@ export default function Home() {
     const parametros = new URLSearchParams();
 
     parametros.set("operacion", operacion);
-    parametros.set("tipo", tipo);
 
-    window.location.href = `/propiedades?${parametros.toString()}`;
+    if (tipo !== "todos") {
+      parametros.set("tipo", tipo);
+    }
+
+    router.push(`/propiedades?${parametros.toString()}`);
   }
 
   return (
@@ -137,9 +167,11 @@ export default function Home() {
                 className="w-full rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
                 <option value="todos">Todos los tipos</option>
-                <option value="casa">Casa</option>
-                <option value="departamento">Departamento</option>
-                <option value="terreno">Terreno</option>
+                {tipos.map((opcion) => (
+                  <option key={opcion.id} value={opcion.id}>
+                    {opcion.nombre}
+                  </option>
+                ))}
               </select>
             </div>
 
