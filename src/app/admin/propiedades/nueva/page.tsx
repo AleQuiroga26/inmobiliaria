@@ -12,8 +12,20 @@ const schema = z.object({
   titulo: z.string().min(3, "Ingresá un título"),
   descripcion: z.string().min(5, "Ingresá una descripción"),
   direccion: z.string().min(3, "Ingresá una dirección"),
-  precio: z.coerce.number<number>().positive("El precio debe ser mayor a 0"),
+  precio: z
+    .string()
+    .refine((valor) => valor === "" || Number(valor) > 0, "El precio debe ser mayor a 0"),
   superficie_m2: z.coerce.number<number>().positive("Ingresá la superficie"),
+  operacion: z.enum(["venta", "alquiler"], { message: "Seleccioná la operación" }),
+  moneda: z.enum(["ARS", "USD"], { message: "Seleccioná la moneda" }),
+  estado: z.enum(["disponible", "reservada", "alquilada", "vendida"], {
+    message: "Seleccioná el estado",
+  }),
+  ambientes: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  dormitorios: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  banios: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  cocheras: z.coerce.number<number>().int().min(0, "No puede ser negativo"),
+  caracteristicas: z.union([z.array(z.string()), z.string(), z.boolean()]).optional(),
   barrio: z.coerce.number<number>().int().positive("Seleccioná un barrio"),
   tipo: z.coerce.number<number>().int().positive("Seleccioná un tipo"),
   propietario: z.coerce.number<number>().int().positive("Seleccioná un propietario"),
@@ -36,6 +48,7 @@ export default function NuevaPropiedadPage() {
   const [tipos, setTipos] = useState<Opcion[]>([]);
   const [propietarios, setPropietarios] = useState<Opcion[]>([]);
   const [agentes, setAgentes] = useState<Opcion[]>([]);
+  const [caracteristicas, setCaracteristicas] = useState<Opcion[]>([]);
   const [errorAPI, setErrorAPI] = useState("");
 
   const {
@@ -44,6 +57,17 @@ export default function NuevaPropiedadPage() {
     formState: { errors, isSubmitting },
   } = useForm<Formulario>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      precio: "",
+      operacion: "venta",
+      moneda: "USD",
+      estado: "disponible",
+      ambientes: 0,
+      dormitorios: 0,
+      banios: 0,
+      cocheras: 0,
+      caracteristicas: [],
+    },
   });
 
   useEffect(() => {
@@ -72,17 +96,19 @@ export default function NuevaPropiedadPage() {
           return datos.results ?? datos;
         }
 
-        const [b, t, p, a] = await Promise.all([
+        const [b, t, p, a, c] = await Promise.all([
           obtener("barrios"),
           obtener("tipos-propiedad"),
           obtener("propietarios"),
           obtener("agentes"),
+          obtener("caracteristicas"),
         ]);
 
         setBarrios(b);
         setTipos(t);
         setPropietarios(p);
         setAgentes(a);
+        setCaracteristicas(c);
       } catch (error) {
         setErrorAPI(
           error instanceof Error ? error.message : "Error al cargar opciones"
@@ -96,6 +122,12 @@ export default function NuevaPropiedadPage() {
   async function guardar(datos: Formulario) {
     setErrorAPI("");
 
+    const elegidas = Array.isArray(datos.caracteristicas)
+      ? datos.caracteristicas
+      : typeof datos.caracteristicas === "string"
+        ? [datos.caracteristicas]
+        : [];
+
     try {
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/propiedades/`,
@@ -107,14 +139,8 @@ export default function NuevaPropiedadPage() {
           },
           body: JSON.stringify({
             ...datos,
-            operacion: "venta",
-            moneda: "ARS",
-            ambientes: 3,
-            dormitorios: 2,
-            banios: 1,
-            cocheras: 0,
-            estado: "disponible",
-            caracteristicas: [],
+            precio: datos.precio === "" ? null : Number(datos.precio),
+            caracteristicas: elegidas.map(Number),
           }),
         }
       );
@@ -140,8 +166,38 @@ export default function NuevaPropiedadPage() {
     { nombre: "titulo", etiqueta: "Título" },
     { nombre: "descripcion", etiqueta: "Descripción" },
     { nombre: "direccion", etiqueta: "Dirección" },
-    { nombre: "precio", etiqueta: "Precio" },
+    { nombre: "precio", etiqueta: "Precio (vacío = Consultar precio)" },
     { nombre: "superficie_m2", etiqueta: "Superficie (m²)" },
+  ] as const;
+
+  const fijos = [
+    {
+      nombre: "operacion",
+      etiqueta: "Operación",
+      opciones: [["venta", "Venta"], ["alquiler", "Alquiler"]],
+    },
+    {
+      nombre: "moneda",
+      etiqueta: "Moneda",
+      opciones: [["USD", "Dólares (USD)"], ["ARS", "Pesos (ARS)"]],
+    },
+    {
+      nombre: "estado",
+      etiqueta: "Estado",
+      opciones: [
+        ["disponible", "Disponible"],
+        ["reservada", "Reservada"],
+        ["alquilada", "Alquilada"],
+        ["vendida", "Vendida"],
+      ],
+    },
+  ] as const;
+
+  const cantidades = [
+    { nombre: "ambientes", etiqueta: "Ambientes" },
+    { nombre: "dormitorios", etiqueta: "Dormitorios" },
+    { nombre: "banios", etiqueta: "Baños" },
+    { nombre: "cocheras", etiqueta: "Cocheras" },
   ] as const;
 
   const selecciones = [
@@ -204,6 +260,68 @@ export default function NuevaPropiedadPage() {
             )}
           </div>
         ))}
+
+        {fijos.map((campo) => (
+          <div key={campo.nombre}>
+            <label className="mb-1 block">{campo.etiqueta}</label>
+            <select
+              {...register(campo.nombre)}
+              className="w-full rounded bg-zinc-800 p-3"
+            >
+              {campo.opciones.map(([valor, texto]) => (
+                <option key={valor} value={valor}>
+                  {texto}
+                </option>
+              ))}
+            </select>
+            {errors[campo.nombre] && (
+              <p className="text-sm text-red-400">
+                {errors[campo.nombre]?.message}
+              </p>
+            )}
+          </div>
+        ))}
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {cantidades.map((campo) => (
+            <div key={campo.nombre}>
+              <label className="mb-1 block">{campo.etiqueta}</label>
+              <input
+                {...register(campo.nombre)}
+                type="number"
+                min="0"
+                step="1"
+                className="w-full rounded bg-zinc-800 p-3"
+              />
+              {errors[campo.nombre] && (
+                <p className="text-sm text-red-400">
+                  {errors[campo.nombre]?.message}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {caracteristicas.length > 0 && (
+          <fieldset>
+            <legend className="mb-2">Características</legend>
+            <div className="flex flex-wrap gap-4">
+              {caracteristicas.map((caracteristica) => (
+                <label
+                  key={caracteristica.id}
+                  className="flex items-center gap-2 rounded bg-zinc-800 px-3 py-2"
+                >
+                  <input
+                    type="checkbox"
+                    value={caracteristica.id}
+                    {...register("caracteristicas")}
+                  />
+                  {caracteristica.nombre}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         {errorAPI && (
           <p className="text-sm text-red-400">{errorAPI}</p>
