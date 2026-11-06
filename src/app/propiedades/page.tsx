@@ -2,13 +2,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   filtrarPropiedades,
   obtenerNombreBarrio,
   type Propiedad,
 } from "@/lib/propiedades";
-import { obtenerImagenPropiedad } from "@/lib/imagenesPropiedades";
+import PropiedadCard from "@/components/PropiedadCard";
 
 export default function PropiedadesPage() {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
@@ -44,19 +43,6 @@ export default function PropiedadesPage() {
 
     cargarPropiedades();
   }, []);
-
-  // Formatear precio
-  function precioFormateado(precio?: number | string) {
-    if (precio === undefined || precio === null) {
-      return "Consultar precio";
-    }
-
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      maximumFractionDigits: 0,
-    }).format(Number(precio));
-  }
 
   // Obtener barrios disponibles
   const barrios = useMemo(() => {
@@ -309,65 +295,7 @@ export default function PropiedadesPage() {
         {!cargando && !error && propiedadesFiltradas.length > 0 && (
           <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
             {propiedadesFiltradas.map((propiedad) => (
-              <Link
-                key={propiedad.id}
-                href={`/propiedades/${propiedad.id}`}
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800"
-              >
-                {/* IMAGEN DE LA PROPIEDAD */}
-                <div className="relative h-56 overflow-hidden bg-slate-200 dark:bg-slate-700">
-                  <img
-                    src={obtenerImagenPropiedad(propiedad.id)}
-                    alt={propiedad.titulo ?? "Imagen de propiedad"}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                  />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800">
-                    Propiedad disponible
-                  </span>
-
-                  <span className="absolute bottom-4 right-4 rounded-lg bg-slate-950/70 px-3 py-2 text-xs font-semibold text-white">
-                    Ver detalles →
-                  </span>
-                </div>
-
-                {/* INFORMACIÓN */}
-                <div className="p-6">
-                  <p className="text-lg font-bold text-amber-600">
-                    {precioFormateado(propiedad.precio)}
-                  </p>
-
-                  <h3 className="mt-2 text-xl font-bold text-slate-900 transition group-hover:text-amber-700 dark:text-white dark:group-hover:text-amber-400">
-                    {propiedad.titulo ?? `Propiedad #${propiedad.id}`}
-                  </h3>
-
-                  {propiedad.direccion && (
-                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                      📍 {propiedad.direccion}
-                    </p>
-                  )}
-
-                  {propiedad.descripcion && (
-                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                      {propiedad.descripcion}
-                    </p>
-                  )}
-
-                  <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-4 text-xs font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                    {propiedad.barrio && (
-                      <span>
-                        📌 {obtenerNombreBarrio(propiedad.barrio)}
-                        {typeof propiedad.barrio === "object" &&
-                          `, ${propiedad.barrio.ciudad}`}
-                      </span>
-                    )}
-
-                    {propiedad.superficie_m2 && (
-                      <span>📐 {propiedad.superficie_m2} m²</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <PropiedadCard key={propiedad.id} propiedad={propiedad} />
             ))}
           </div>
         )}
