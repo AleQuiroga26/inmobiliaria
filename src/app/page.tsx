@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PrecioPropiedad from "@/components/PrecioPropiedad";
+import { soloPublicas } from "@/lib/propiedades";
 
 type TipoPropiedad = {
   id: number;
@@ -16,6 +17,7 @@ type Propiedad = {
   descripcion?: string;
   precio?: number | string;
   moneda?: string;
+  estado?: string;
   direccion?: string;
   superficie_m2?: number;
 };
@@ -67,7 +69,7 @@ export default function Home() {
         }
 
         const datos = await respuesta.json();
-        setPropiedades((datos.results ?? datos).slice(0, 3));
+        setPropiedades(soloPublicas<Propiedad>(datos.results ?? datos).slice(0, 3));
       } catch (err) {
         setError(
           err instanceof Error

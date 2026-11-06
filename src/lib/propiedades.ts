@@ -12,7 +12,16 @@ export type Propiedad = {
   direccion?: string;
   barrio?: Barrio | string;
   superficie_m2?: number;
+  estado?: string;
 };
+
+// Las vendidas y alquiladas solo las ve el admin
+export function soloPublicas<T extends { estado?: string }>(propiedades: T[]) {
+  return propiedades.filter(
+    (propiedad) =>
+      propiedad.estado !== "vendida" && propiedad.estado !== "alquilada"
+  );
+}
 
 export function obtenerNombreBarrio(barrio?: Barrio | string) {
   if (!barrio) {
