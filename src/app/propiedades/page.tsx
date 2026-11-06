@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   filtrarPropiedades,
   obtenerNombreBarrio,
+  soloPublicas,
   type Propiedad,
 } from "@/lib/propiedades";
 import PropiedadCard from "@/components/PropiedadCard";
@@ -44,7 +45,7 @@ function CatalogoPropiedades() {
         }
 
         const datos = await respuesta.json();
-        setPropiedades(datos.results ?? datos);
+        setPropiedades(soloPublicas(datos.results ?? datos));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Error desconocido"
